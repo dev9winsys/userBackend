@@ -11,6 +11,7 @@ public class MessageTable {
     public String SearchMessage (String req){
 
         String result = "";
+        String whereSQL = "";
         List<String> columnList = new ArrayList<String>();
         columnList.add("company_code");
         columnList.add("doc_id");
@@ -62,18 +63,29 @@ public class MessageTable {
             try{
                 for(String s : columnList)
                 {
+                    String getWhere = "";
+
+                    //日時の場合from,toを取得する
                     if (s.matches(".*date"))
                     {
-                        String fromDate = requestNode.findPath(s+"from").asText();
-                        String toDate = requestNode.findPath(s+"to").asText();
+                        try { getWhere = requestNode.findPath(s+"from").asText(); } catch (Exception e){}
+                        if(getWhere==null || getWhere.equals(""))
+                            whereSQL += " AND " + s + ">=" + getWhere;
 
-                        if(fromDate==null || fromDate.equals("") || toDate==null || toDate.equals(""))
-                        {
+                        try { getWhere = requestNode.findPath(s+"to").asText(); } catch (Exception e){}
+                        if(getWhere==null || getWhere.equals(""))
+                            whereSQL += " AND " + s + "<=" + getWhere;
 
-                        }
-
+                    } else {
+                    //日時以外の場合
+                        try { getWhere = requestNode.findPath(s).asText(); } catch (Exception e){}
+                        if(getWhere==null || getWhere.equals(""))
+                            whereSQL += " AND " + s + "=" + getWhere;
                     }
                 }
+
+                //DB検索
+
             }catch (Exception e){
                 e.printStackTrace();
                 runFlg = false;
